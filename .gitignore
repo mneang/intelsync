@@ -1,0 +1,19 @@
+# Python virtual environment
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Secrets and local configs
+secrets.json
+
+# Linter / formatter caches
+.pytest_cache/
+.mypy_cache/
+.cache/
+.flake8
+
+# IDE/editor folders
+.vscode/
