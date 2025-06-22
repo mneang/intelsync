@@ -1,7 +1,7 @@
 import os
 import yaml
 import json
-from google.genai import TextGenerationModel
+from google import genai
 
 class InsightGeneratorAgent:
     def __init__(self, name: str, config_path: str):
@@ -11,9 +11,13 @@ class InsightGeneratorAgent:
             self.cfg = yaml.safe_load(f)
         os.makedirs(os.path.dirname(self.cfg["output_path"]), exist_ok=True)
 
-        # Initialize the PaLM model
-        model_name = self.cfg.get("model", "models/text-bison-001")
-        self.model = TextGenerationModel.from_pretrained(model_name)
+        # Ensure GenAI uses your GCP project and location
+        os.environ["GOOGLE_CLOUD_PROJECT"]     = self.cfg["project_id"]
+        os.environ["GOOGLE_CLOUD_LOCATION"]    = self.cfg.get("location", "global")
+        os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+
+        # Initialize the GenAI client (Vertex AI)
+        self.client = genai.Client(vertexai=True)  #  [oai_citation:0‡ai.google.dev](https://ai.google.dev/gemini-api/docs/text-generation?utm_source=chatgpt.com)
 
     def generate(self):
         # Load scraped articles
@@ -21,7 +25,7 @@ class InsightGeneratorAgent:
         with open(input_path, "r", encoding="utf-8") as fr:
             articles = json.load(fr)
 
-        # Build a concise prompt
+        # Build prompt bullets
         bullets = [
             f"- **{art['title']}**: {art['summary'][:200]}..."
             for art in articles
@@ -33,14 +37,13 @@ class InsightGeneratorAgent:
         )
 
         # Call the model
-        response = self.model.generate(
-            prompt=prompt,
-            temperature=0.2,
-            max_output_tokens=256
+        response = self.client.models.generate_content(
+            model=self.cfg["model"],
+            contents=prompt
         )
-        text = response.generations[0].text.strip()
+        text = response.text.strip()
 
-        # Write real insights
+        # Write out the insights
         out_path = self.cfg["output_path"]
         with open(out_path, "w", encoding="utf-8") as fw:
             fw.write(text + "\n")
