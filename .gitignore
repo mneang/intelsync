@@ -17,3 +17,6 @@ secrets.json
 
 # IDE/editor folders
 .vscode/
+
+# Ignore service account key
+config/sa-key.json
