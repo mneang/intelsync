@@ -1,9 +1,7 @@
-
 import os
 import yaml
 import json
-import vertexai
-from vertexai.language_models import ChatModel
+from google.cloud import language_v1
 
 class InsightGeneratorAgent:
     def __init__(self, name: str, config_path: str):
@@ -12,55 +10,43 @@ class InsightGeneratorAgent:
             self.cfg = yaml.safe_load(f)
         os.makedirs(os.path.dirname(self.cfg["output_path"]), exist_ok=True)
 
-        # Init Vertex AI
-        vertexai.init(
-            project=self.cfg["project_id"],
-            location=self.cfg.get("location", "us-central1")
-        )
-
-        # Load the chat model
-        model_id = self.cfg.get("model", "chat-bison@001")
-        try:
-            self.chat_model = ChatModel.from_pretrained(model_id)
-        except Exception as e:
-            print(f"[{self.name}] ERROR loading ChatModel '{model_id}': {e}")
-            self.chat_model = None
+        # Initialize NL API client
+        self.client = language_v1.LanguageServiceClient()
 
     def generate(self):
         # Load scraped articles
         with open(self.cfg["input_path"], "r", encoding="utf-8") as fr:
             articles = json.load(fr)
 
-        # Build system & user messages
-        bullets = [
-            f"- **{a['title']}**: {a['summary'][:200]}..."
-            for a in articles
+        sentiments = []
+        for art in articles:
+            doc = language_v1.Document(
+                content=art["summary"] or art["title"],
+                type_=language_v1.Document.Type.PLAIN_TEXT
+            )
+            result = self.client.analyze_sentiment(request={"document": doc})
+            score = result.document_sentiment.score
+            sentiments.append(score)
+            art["sentiment"] = score
+
+        # Build summary
+        avg_sent = sum(sentiments) / len(sentiments) if sentiments else 0
+        lines = [
+            f"## Market Intelligence Summary",
+            f"- Analyzed {len(articles)} articles.",
+            f"- Average sentiment score: {avg_sent:.2f} (–1.0 negative … +1.0 positive)",
+            "",
+            "### Article Sentiments:",
         ]
-        system_msg = self.cfg.get("prompt_template")
-        user_msg = (
-            "Articles:\n" + "\n".join(bullets) +
-            "\n\nProvide a concise executive summary with actionable recommendations."
-        )
+        for art in articles:
+            lines.append(f"- **{art['title']}** → sentiment: {art['sentiment']:.2f}")
 
-        text = None
-        if self.chat_model:
-            try:
-                chat = self.chat_model.start_chat(context=system_msg)
-                response = chat.send_message(user_msg, temperature=0.2)
-                text = response.text.strip()
-            except Exception as e:
-                print(f"[{self.name}] ERROR during chat.predict: {e}")
+        text = "\n".join(lines)
 
-        # Fallback if GenAI fails
-        if not text:
-            print(f"[{self.name}] Using fallback summarization.")
-            lines = ["## Fallback Summary"] + bullets
-            text = "\n".join(lines)
-
-        # Write insights
+        # Write out insights
         out_path = self.cfg["output_path"]
         with open(out_path, "w", encoding="utf-8") as fw:
             fw.write(text + "\n")
 
-        print(f"[{self.name}] Wrote insights to {out_path}")
+        print(f"[{self.name}] Wrote Cloud NL–powered insights to {out_path}")
         return out_path
