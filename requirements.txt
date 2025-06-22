@@ -14,3 +14,4 @@ streamlit
 pandas
 beautifulsoup4
 
+altair
