@@ -1,4 +1,4 @@
-# config/scraper_config.yaml
 targets:
-  - "https://example.com/news"
+  - "https://cloud.google.com/blog/products/ai-machine-learning"
+  - "https://news.ycombinator.com/"
 output_path: "data/sample_articles.json"
