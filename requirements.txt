@@ -10,3 +10,7 @@ beautifulsoup4
 google-cloud-language
 streamlit
 pandas
+streamlit
+pandas
+beautifulsoup4
+
