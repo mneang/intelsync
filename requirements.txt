@@ -6,4 +6,4 @@ black
 flake8
 isort
 requests
-beautifulsoup4
+beautifulsoup4google-genai
