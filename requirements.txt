@@ -6,5 +6,7 @@ black
 flake8
 isort
 requests
-beautifulsoup4google-genai
+beautifulsoup4
 google-cloud-language
+streamlit
+pandas
