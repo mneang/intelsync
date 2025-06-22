@@ -1,0 +1,26 @@
+[
+  {
+    "title": "AI & Machine Learning | Google Cloud Blog",
+    "entity": "AI",
+    "type": "OTHER",
+    "salience": 0.269
+  },
+  {
+    "title": "AI & Machine Learning | Google Cloud Blog",
+    "entity": "news",
+    "type": "OTHER",
+    "salience": 0.212
+  },
+  {
+    "title": "AI & Machine Learning | Google Cloud Blog",
+    "entity": "updates",
+    "type": "OTHER",
+    "salience": 0.143
+  },
+  {
+    "title": "Hacker News",
+    "entity": "Hacker News",
+    "type": "OTHER",
+    "salience": 1.0
+  }
+]

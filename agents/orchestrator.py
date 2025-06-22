@@ -1,15 +1,24 @@
-from google.adk import Workflow
 from agents.web_scraper_agent import WebScraperAgent
 from agents.bigquery_loader_agent import BigQueryLoaderAgent
 from agents.insight_generator_agent import InsightGeneratorAgent
 
-def build_workflow():
-    wf = Workflow(name="IntelSync Pipeline")
-    wf.add_agent(WebScraperAgent(name="scraper", config_path="config/scraper_config.yaml"))
-    wf.add_agent(BigQueryLoaderAgent(name="loader", config_path="config/bq_config.yaml"))
-    wf.add_agent(InsightGeneratorAgent(name="insights", config_path="config/insights_config.yaml"))
-    wf.set_sequence(["scraper", "loader", "insights"])
-    return wf
+class IntelSyncOrchestrator:
+    def __init__(self, config_dir: str = "config"):
+        self.scraper  = WebScraperAgent("scraper",  f"{config_dir}/scraper_config.yaml")
+        self.loader   = BigQueryLoaderAgent("loader",   f"{config_dir}/bq_config.yaml")
+        self.insights = InsightGeneratorAgent("insights",f"{config_dir}/insights_config.yaml")
+
+    def run(self):
+        print("➡️  Starting web scrape…")
+        articles = self.scraper.scrape()
+
+        print("➡️  Loading data to BigQuery…")
+        self.loader.load(articles)
+
+        print("➡️  Generating insights…")
+        report = self.insights.generate()
+
+        print(f"✅  Pipeline complete! Insights at: {report}")
 
 if __name__ == "__main__":
-    build_workflow().run()
+    IntelSyncOrchestrator().run()

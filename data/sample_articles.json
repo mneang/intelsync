@@ -3,12 +3,22 @@
     "url": "https://cloud.google.com/blog/products/ai-machine-learning",
     "title": "AI & Machine Learning | Google Cloud Blog",
     "summary": "Find news, updates, and best practices for AI and machine learning solutions on Google Cloud. AI & Machine Learning Today, we are thrilled to introduce the next wave of generative media models on Vertex AI: Veo 3, Imagen 4, and Lyria 2. Let’s take a look into each model and ways you can get started today.",
-    "fetched_at": "2025-06-22T06:36:10.109060"
+    "fetched_at": "2025-06-22T19:43:44.876426",
+    "sentiment": 0.4000000059604645,
+    "entities": [
+      "AI",
+      "news",
+      "updates"
+    ]
   },
   {
     "url": "https://news.ycombinator.com/",
     "title": "Hacker News",
     "summary": "",
-    "fetched_at": "2025-06-22T06:36:10.225845"
+    "fetched_at": "2025-06-22T19:43:44.991998",
+    "sentiment": 0.30000001192092896,
+    "entities": [
+      "Hacker News"
+    ]
   }
 ]
