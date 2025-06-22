@@ -1,0 +1,4 @@
+# config/scraper_config.yaml
+targets:
+  - "https://example.com/news"
+output_path: "data/sample_articles.json"
