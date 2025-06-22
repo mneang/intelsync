@@ -3,6 +3,6 @@
  table: "raw_articles"
  input_path: "data/sample_articles.json"
  output_path: "data/insights_summary.txt"
- model: "text-bison@001"
+ model: "chat-bison@001"
  location: "us-central1"
  prompt_template: "Summarize key market moves and sentiment."

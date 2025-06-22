@@ -1,0 +1,7 @@
+## Market Intelligence Summary
+- Analyzed 2 articles.
+- Average sentiment score: 0.35 (–1.0 negative … +1.0 positive)
+
+### Article Sentiments:
+- **AI & Machine Learning | Google Cloud Blog** → sentiment: 0.40
+- **Hacker News** → sentiment: 0.30
