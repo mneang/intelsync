@@ -1,7 +1,8 @@
 import os
 import yaml
 import json
-from google import genai
+import vertexai
+from vertexai.language_models import TextGenerationModel
 
 class InsightGeneratorAgent:
     def __init__(self, name: str, config_path: str):
@@ -11,13 +12,16 @@ class InsightGeneratorAgent:
             self.cfg = yaml.safe_load(f)
         os.makedirs(os.path.dirname(self.cfg["output_path"]), exist_ok=True)
 
-        # Ensure GenAI uses your GCP project and location
-        os.environ["GOOGLE_CLOUD_PROJECT"]     = self.cfg["project_id"]
-        os.environ["GOOGLE_CLOUD_LOCATION"]    = self.cfg.get("location", "global")
-        os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
+        # Initialize Vertex AI for Gen AI
+        vertexai.init(
+            project=self.cfg["project_id"],
+            location=self.cfg.get("location", "us-central1")
+        )  #  [oai_citation:0‡cloud.google.com](https://cloud.google.com/python/docs/reference/vertexai/latest?utm_source=chatgpt.com)
 
-        # Initialize the GenAI client (Vertex AI)
-        self.client = genai.Client(vertexai=True)  #  [oai_citation:0‡ai.google.dev](https://ai.google.dev/gemini-api/docs/text-generation?utm_source=chatgpt.com)
+        # Load the model
+        # Note: use the correct model ID, e.g. "text-bison@001"
+        model_id = self.cfg.get("model", "text-bison@001")
+        self.model = TextGenerationModel.from_pretrained(model_id)  #  [oai_citation:1‡cloud.google.com](https://cloud.google.com/python/docs/reference/aiplatform/1.27.0/vertexai.language_models.TextGenerationModel?utm_source=chatgpt.com)
 
     def generate(self):
         # Load scraped articles
@@ -36,10 +40,11 @@ class InsightGeneratorAgent:
             "Provide a concise executive summary with actionable recommendations."
         )
 
-        # Call the model
-        response = self.client.models.generate_content(
-            model=self.cfg["model"],
-            contents=prompt
+        # Generate
+        response = self.model.predict(
+            prompt,
+            temperature=0.2,
+            max_output_tokens=256
         )
         text = response.text.strip()
 
