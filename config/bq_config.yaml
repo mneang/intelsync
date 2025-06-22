@@ -1,0 +1,6 @@
+# BigQuery settings for loader agent
+project_id: "YOUR_GCP_PROJECT_ID"
+dataset: "intelsync_dataset"
+table: "raw_articles"
+# Path to the JSON file produced by the scraper
+input_path: "data/sample_articles.json"

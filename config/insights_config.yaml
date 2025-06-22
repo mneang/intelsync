@@ -1,0 +1,10 @@
+# Insight generator settings
+# BigQuery table to read from
+project_id: "YOUR_GCP_PROJECT_ID"
+dataset: "intelsync_dataset"
+table: "raw_articles"
+# Output summary file
+output_path: "data/insights_summary.txt"
+# Language model settings
+model: "models/text-bison-001"
+prompt_template: "Summarize key market moves and sentiment."

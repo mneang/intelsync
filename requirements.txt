@@ -1,0 +1,7 @@
+google-cloud-bigquery>=3.0.0
+google-adk
+google-cloud-secret-manager
+google-auth
+black
+flake8
+isort
