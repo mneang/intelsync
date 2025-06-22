@@ -7,3 +7,4 @@ flake8
 isort
 requests
 beautifulsoup4google-genai
+google-cloud-language
