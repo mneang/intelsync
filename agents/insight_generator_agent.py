@@ -12,20 +12,23 @@ class InsightGeneratorAgent:
             self.cfg = yaml.safe_load(f)
         os.makedirs(os.path.dirname(self.cfg["output_path"]), exist_ok=True)
 
-        # Initialize Vertex AI for Gen AI
+        # Init Vertex AI
         vertexai.init(
             project=self.cfg["project_id"],
             location=self.cfg.get("location", "us-central1")
-        )  #  [oai_citation:0‡cloud.google.com](https://cloud.google.com/python/docs/reference/vertexai/latest?utm_source=chatgpt.com)
+        )
 
-        # Load the model
-        # Note: use the correct model ID, e.g. "text-bison@001"
+        # Load GenAI model
         model_id = self.cfg.get("model", "text-bison@001")
-        self.model = TextGenerationModel.from_pretrained(model_id)  #  [oai_citation:1‡cloud.google.com](https://cloud.google.com/python/docs/reference/aiplatform/1.27.0/vertexai.language_models.TextGenerationModel?utm_source=chatgpt.com)
+        try:
+            self.model = TextGenerationModel.from_pretrained(model_id)
+        except Exception as e:
+            print(f"[{self.name}] Warning: could not load GenAI model '{model_id}': {e}")
+            self.model = None
 
     def generate(self):
         # Load scraped articles
-        input_path = self.cfg["input_path"]
+        input_path = self.cfg.get("input_path", "data/sample_articles.json")
         with open(input_path, "r", encoding="utf-8") as fr:
             articles = json.load(fr)
 
@@ -35,23 +38,35 @@ class InsightGeneratorAgent:
             for art in articles
         ]
         prompt = (
-            f"{self.cfg['prompt_template']}\n\n"
+            f"{self.cfg.get('prompt_template')}\n\n"
             "Articles:\n" + "\n".join(bullets) + "\n\n"
             "Provide a concise executive summary with actionable recommendations."
         )
 
-        # Generate
-        response = self.model.predict(
-            prompt,
-            temperature=0.2,
-            max_output_tokens=256
-        )
-        text = response.text.strip()
+        text = None
+        if self.model:
+            try:
+                response = self.model.predict(
+                    prompt,
+                    temperature=0.2,
+                    max_output_tokens=256
+                )
+                text = response.text.strip()
+            except Exception as e:
+                print(f"[{self.name}] Warning: GenAI prediction failed: {e}")
 
-        # Write out the insights
-        out_path = self.cfg["output_path"]
+        # Fallback summarization
+        if not text:
+            print(f"[{self.name}] Using fallback summarization.")
+            lines = ["## Fallback Summary"]
+            for art in articles:
+                lines.append(f"- {art['title']}: {art['summary'][:200]}...")
+            text = "\n".join(lines)
+
+        # Write out insights
+        out_path = self.cfg.get("output_path", "data/insights_summary.txt")
         with open(out_path, "w", encoding="utf-8") as fw:
             fw.write(text + "\n")
 
-        print(f"[{self.name}] Wrote real insights to {out_path}")
+        print(f"[{self.name}] Wrote insights to {out_path}")
         return out_path
