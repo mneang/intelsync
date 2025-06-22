@@ -1,3 +1,4 @@
+
 import os
 import yaml
 import json
@@ -11,7 +12,7 @@ class InsightGeneratorAgent:
             self.cfg = yaml.safe_load(f)
         os.makedirs(os.path.dirname(self.cfg["output_path"]), exist_ok=True)
 
-        # Initialize Vertex AI
+        # Init Vertex AI
         vertexai.init(
             project=self.cfg["project_id"],
             location=self.cfg.get("location", "us-central1")
@@ -20,49 +21,43 @@ class InsightGeneratorAgent:
         # Load the chat model
         model_id = self.cfg.get("model", "chat-bison@001")
         try:
-            self.chat = ChatModel.from_pretrained(model_id).start_chat()
+            self.chat_model = ChatModel.from_pretrained(model_id)
         except Exception as e:
             print(f"[{self.name}] ERROR loading ChatModel '{model_id}': {e}")
-            self.chat = None
+            self.chat_model = None
 
     def generate(self):
         # Load scraped articles
         with open(self.cfg["input_path"], "r", encoding="utf-8") as fr:
             articles = json.load(fr)
 
-        # Build the message
+        # Build system & user messages
         bullets = [
             f"- **{a['title']}**: {a['summary'][:200]}..."
             for a in articles
         ]
-        system = self.cfg.get("prompt_template")
+        system_msg = self.cfg.get("prompt_template")
         user_msg = (
-            "Articles:\n" + "\n".join(bullets) + 
+            "Articles:\n" + "\n".join(bullets) +
             "\n\nProvide a concise executive summary with actionable recommendations."
         )
 
-        if self.chat:
+        text = None
+        if self.chat_model:
             try:
-                # System + user roles
-                self.chat = self.chat.start_chat(
-                    context=system
-                )
-                response = self.chat.send_message(user_msg, temperature=0.2)
+                chat = self.chat_model.start_chat(context=system_msg)
+                response = chat.send_message(user_msg, temperature=0.2)
                 text = response.text.strip()
             except Exception as e:
                 print(f"[{self.name}] ERROR during chat.predict: {e}")
-                text = None
-        else:
-            text = None
 
-        # Fallback if needed
+        # Fallback if GenAI fails
         if not text:
             print(f"[{self.name}] Using fallback summarization.")
-            lines = ["## Fallback Summary"]
-            lines += bullets
+            lines = ["## Fallback Summary"] + bullets
             text = "\n".join(lines)
 
-        # Write out insights
+        # Write insights
         out_path = self.cfg["output_path"]
         with open(out_path, "w", encoding="utf-8") as fw:
             fw.write(text + "\n")
