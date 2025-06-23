@@ -48,7 +48,7 @@ This solves the pain of **slow, manual market research** and delivers **export-r
 
 - **Live App:**  
   https://intelsync-adkhackathon.streamlit.app/  
-- **Demo Video (≤ 3 min):**  
+- **Demo Video:**  
   https://youtu.be/sX8--BPEt3E
 
 ---
